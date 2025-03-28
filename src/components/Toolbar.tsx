@@ -15,6 +15,7 @@ export default function Toolbar({ onSelectTool }: ToolbarProps) {
   const handleToolSelect = (tool: Tool) => {
     setSelectedTool(tool);
     onSelectTool(tool);
+
   };
 
   return (
