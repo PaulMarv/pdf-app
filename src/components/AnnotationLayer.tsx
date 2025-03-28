@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface AnnotationLayerProps {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement>; // Ensure this is always a RefObject
   selectedTool: string;
   selectedColor: string;
   signature?: string | null;
@@ -11,13 +11,11 @@ interface AnnotationLayerProps {
 
 const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ canvasRef, selectedTool, selectedColor, signature }) => {
   const annotationRef = useRef<HTMLCanvasElement>(null);
-  const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
     if (annotationRef.current) {
       const ctx = annotationRef.current.getContext("2d");
       if (ctx) {
-        setContext(ctx);
         ctx.strokeStyle = selectedColor;
         ctx.lineWidth = selectedTool === "highlight" ? 10 : 2;
         ctx.globalAlpha = selectedTool === "highlight" ? 0.3 : 1;

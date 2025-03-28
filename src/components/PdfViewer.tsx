@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, createRef } from "react";
 import AnnotationLayer from "@/components/AnnotationLayer";
 import SignaturePad from "@/components/SignaturePad";
 import { usePdf } from "@/hooks/usePdf";
@@ -15,8 +15,15 @@ interface PDFViewerProps {
 const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor }) => {
   const { pdfDoc, numPages } = usePdf(file);
   const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
-  const annotationRefs = useRef<(HTMLCanvasElement | null)[]>([]);
+  const [annotationRefs, setAnnotationRefs] = useState<React.RefObject<HTMLCanvasElement | null>[]>([]);
   const [signature, setSignature] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Update annotationRefs whenever numPages changes
+    setAnnotationRefs(
+      Array.from({ length: numPages }, () => createRef<HTMLCanvasElement>())
+    );
+  }, [numPages]);
 
   useEffect(() => {
     if (!pdfDoc) return;
@@ -37,13 +44,20 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
     <div className="relative w-full">
       {Array.from({ length: numPages }).map((_, index) => (
         <div key={index} className="relative mb-4">
-          <canvas ref={(el) => (canvasRefs.current[index] = el)} className="w-full border" />
-          <AnnotationLayer
-            canvasRef={annotationRefs.current[index] || { current: null }}
-            selectedTool={selectedTool}
-            selectedColor={selectedColor}
-            signature={signature}
+          <canvas
+            ref={(el) => {
+              canvasRefs.current[index] = el;
+            }}
+            className="w-full border"
           />
+          {annotationRefs[index]?.current && (
+            <AnnotationLayer
+              canvasRef={annotationRefs[index] as React.RefObject<HTMLCanvasElement>}
+              selectedTool={selectedTool}
+              selectedColor={selectedColor}
+              signature={signature}
+            />
+          )}
         </div>
       ))}
 
