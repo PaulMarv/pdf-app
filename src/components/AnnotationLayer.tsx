@@ -85,7 +85,7 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
   };
 
   const handleMouseUp = async (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !pdfBytes) return;
+    if (!canvasRef.current || !pdfBytes || typeof document === "undefined") return;
 
     if (selectedTool === "highlight" && textLayerRef?.current) {
       if (typeof window !== "undefined") {
