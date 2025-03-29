@@ -1,7 +1,8 @@
 import * as pdfjs from "pdfjs-dist";
 import { PDFDocument, rgb, RGB } from "pdf-lib";
-
-
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs"; // Correct import
+import * as pdfjsViewer from "pdfjs-dist/web/pdf_viewer.mjs"; // Required for rendering text layers
+import "pdfjs-dist/web/pdf_viewer.css";
 // Ensure the worker is set
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
@@ -21,29 +22,75 @@ export const loadPdf = async (file: File): Promise<pdfjs.PDFDocumentProxy | null
 };
 
 
-/**
- * Render a specific page of a PDF document onto a canvas.
- */
-export const renderPage = async (
-  pdfDoc: pdfjs.PDFDocumentProxy | null,
-  pageNum: number,
-  canvas: HTMLCanvasElement
-) => {
+
+// export const renderPage = async (
+//   pdfDoc: pdfjs.PDFDocumentProxy | null,
+//   pageNum: number,
+//   canvas: HTMLCanvasElement
+// ) => {
+//   if (!pdfDoc) return;
+//   const page = await pdfDoc.getPage(pageNum);
+//   const viewport = page.getViewport({ scale: 1.5 });
+//   const context = canvas.getContext("2d");
+
+//   if (!context) return;
+//   canvas.width = viewport.width;
+//   canvas.height = viewport.height;
+
+//   await page.render({ canvasContext: context, viewport }).promise;
+// };
+
+export async function renderPage(pdfDoc: pdfjs.PDFDocumentProxy | null, pageNum: number, canvas: HTMLCanvasElement) {
   if (!pdfDoc) return;
+
   const page = await pdfDoc.getPage(pageNum);
   const viewport = page.getViewport({ scale: 1.5 });
-  const context = canvas.getContext("2d");
 
-  if (!context) return;
+  const context = canvas.getContext("2d");
   canvas.width = viewport.width;
   canvas.height = viewport.height;
 
-  await page.render({ canvasContext: context, viewport }).promise;
-};
+  if (context) {
+    await page.render({ canvasContext: context, viewport }).promise;
+  }
+}
 
-/**
- * Highlight text by drawing a semi-transparent rectangle over it.
- */
+export async function renderTextLayer(
+  pdfDoc: pdfjsLib.PDFDocumentProxy | null,
+  pageNum: number,
+  textLayerContainer: HTMLDivElement
+) {
+  if (!pdfDoc) return;
+
+  const page = await pdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({ scale: 1.5 });
+
+  // Clear the container before rendering a new text layer
+  textLayerContainer.innerHTML = "";
+
+  // Create an instance of TextLayerBuilder
+  const textLayerBuilder = new pdfjsViewer.TextLayerBuilder({
+    pdfPage: page, // Required
+  
+  });
+
+  // Append the text layer div to the container
+  textLayerContainer.appendChild(textLayerBuilder.div);
+
+  // Render the text layer
+  await textLayerBuilder.render({
+    viewport,
+    textContentParams: {
+      includeMarkedContent: true,
+      disableNormalization: true,
+    },
+  });
+}
+
+
+
+
+
 export const highlightText = async (
   pdfBytes: Uint8Array,
   pageNumber: number,

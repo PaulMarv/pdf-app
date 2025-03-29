@@ -20,7 +20,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ selectedColor, onSelectColor 
         onClick={() => setShowPicker(!showPicker)}
       />
       {showPicker && (
-        <div className="absolute top-10 left-0 z-10 shadow-lg">
+        <div className="absolute top-10 left-0 z-30 shadow-lg ">
           <SketchPicker
             color={selectedColor}
             onChange={(color) => onSelectColor(color.hex)}
