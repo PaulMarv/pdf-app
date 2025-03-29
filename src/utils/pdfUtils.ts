@@ -1,14 +1,11 @@
 import * as pdfjs from "pdfjs-dist";
 import { PDFDocument, rgb, RGB } from "pdf-lib";
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs"; // Correct import
-import * as pdfjsViewer from "pdfjs-dist/web/pdf_viewer.mjs"; // Required for rendering text layers
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs"; 
+import * as pdfjsViewer from "pdfjs-dist/web/pdf_viewer.mjs"; 
 import "pdfjs-dist/web/pdf_viewer.css";
-// Ensure the worker is set
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
-/**
- * Load a PDF file into pdfjs-dist for rendering.
- */
+
 export const loadPdf = async (file: File): Promise<pdfjs.PDFDocumentProxy | null> => {
   try {
     const arrayBuffer = await file.arrayBuffer();
@@ -20,25 +17,6 @@ export const loadPdf = async (file: File): Promise<pdfjs.PDFDocumentProxy | null
     return null;
   }
 };
-
-
-
-// export const renderPage = async (
-//   pdfDoc: pdfjs.PDFDocumentProxy | null,
-//   pageNum: number,
-//   canvas: HTMLCanvasElement
-// ) => {
-//   if (!pdfDoc) return;
-//   const page = await pdfDoc.getPage(pageNum);
-//   const viewport = page.getViewport({ scale: 1.5 });
-//   const context = canvas.getContext("2d");
-
-//   if (!context) return;
-//   canvas.width = viewport.width;
-//   canvas.height = viewport.height;
-
-//   await page.render({ canvasContext: context, viewport }).promise;
-// };
 
 export async function renderPage(pdfDoc: pdfjs.PDFDocumentProxy | null, pageNum: number, canvas: HTMLCanvasElement) {
   if (!pdfDoc) return;
@@ -64,20 +42,15 @@ export async function renderTextLayer(
 
   const page = await pdfDoc.getPage(pageNum);
   const viewport = page.getViewport({ scale: 1.5 });
-
-  // Clear the container before rendering a new text layer
   textLayerContainer.innerHTML = "";
 
-  // Create an instance of TextLayerBuilder
   const textLayerBuilder = new pdfjsViewer.TextLayerBuilder({
-    pdfPage: page, // Required
+    pdfPage: page, 
   
   });
 
-  // Append the text layer div to the container
-  textLayerContainer.appendChild(textLayerBuilder.div);
 
-  // Render the text layer
+  textLayerContainer.appendChild(textLayerBuilder.div);
   await textLayerBuilder.render({
     viewport,
     textContentParams: {
@@ -98,7 +71,7 @@ export const highlightText = async (
   y: number,
   width: number,
   height: number,
-  color = rgb(1, 1, 0) // Default yellow highlight
+  color = rgb(1, 1, 0) 
 ) => {
   const pdfDoc = await PDFDocument.load(pdfBytes);
   const page = pdfDoc.getPage(pageNumber - 1);
@@ -113,17 +86,13 @@ export const highlightText = async (
   return await pdfDoc.save();
 };
 
-
-/**
- * Underline text by drawing a line beneath it.
- */
 export const underlineText = async (
   pdfBytes: Uint8Array,
   pageNumber: number,
   x: number,
   y: number,
   width: number,
-  color = rgb(1, 0, 0) // Default red underline
+  color = rgb(1, 0, 0) 
 ) => {
   const pdfDoc = await PDFDocument.load(pdfBytes);
   const page = pdfDoc.getPage(pageNumber - 1);
@@ -136,9 +105,6 @@ export const underlineText = async (
   return await pdfDoc.save();
 };
 
-/**
- * Add a comment to the PDF by drawing a small icon or marker at a specific position.
- */
 export const addCommentMarker = async (
   pdfBytes: Uint8Array,
   pageNumber: number,
@@ -149,24 +115,19 @@ export const addCommentMarker = async (
   const pdfDoc = await PDFDocument.load(pdfBytes);
   const page = pdfDoc.getPage(pageNumber - 1);
 
-  // Draw a small rectangle as a marker
   page.drawRectangle({
     x,
     y,
     width: 10,
     height: 10,
-    color: rgb(0, 0, 1), // Blue marker
+    color: rgb(0, 0, 1), 
   });
 
-  // Store the comment somewhere (in a real app, you'd save it to a database)
   console.log(`Comment added on page ${pageNumber}: ${commentText}`);
 
   return await pdfDoc.save();
 };
 
-/**
- * Embed an image (signature) into the PDF.
- */
 export const embedSignature = async (
   pdfBytes: Uint8Array,
   imageData: string,
@@ -183,9 +144,6 @@ export const embedSignature = async (
   return await pdfDoc.save();
 };
 
-/**
- * Merge annotation images onto PDF pages and export the modified PDF.
- */
 export const exportPdfWithAnnotations = async (
   pdfBytes: Uint8Array,
   annotationImages: { [pageNumber: number]: string }

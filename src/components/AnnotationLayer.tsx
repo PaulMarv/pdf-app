@@ -90,7 +90,6 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
   const handleMouseUp = async (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !pdfBytes) return;
 
-    // 1️⃣ **Handle Text Selection**
     if (selectedTool === "highlight" && textLayerRef?.current) {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
@@ -100,7 +99,7 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
         if (rect.width > 0 && rect.height > 0) {
           console.log("Text selection detected", rect);
 
-          // Apply a visual highlight (client-side only)
+
           const highlight = document.createElement("span");
           highlight.style.backgroundColor = selectedColor || "yellow";
           highlight.style.position = "absolute";
@@ -112,7 +111,6 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
           highlight.style.zIndex = "2";
           textLayerRef.current.appendChild(highlight);
 
-          // Convert to PDF coordinates and annotate the text
           const updatedPdfBytes = await annotatePdf({
             pdfBytes,
             tool: "highlight",
@@ -127,13 +125,12 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
           });
 
           if (updatedPdfBytes) onUpdatePdf(updatedPdfBytes);
-          selection.removeAllRanges(); // Clear selection after annotation
+          selection.removeAllRanges(); 
           return;
         }
       }
     }
 
-    // 2️⃣ **Handle Drawing**
     if (isDrawing) {
       setIsDrawing(false);
       if (ctxRef.current) ctxRef.current.closePath();

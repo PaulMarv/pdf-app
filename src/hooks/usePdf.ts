@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import * as pdfjs from "pdfjs-dist";
 
-// Manually set the worker source
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 export const usePdf = (file: File | null) => {

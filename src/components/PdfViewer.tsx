@@ -18,12 +18,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
   const { pdfDoc, numPages, pdfBytes, setPdfBytes } = usePdf(file);
   const [signature, setSignature] = useState<string | null>(null);
 
-  // Refs for PDF canvas and annotation canvas
   const canvasRefs = useRef<Array<React.RefObject<HTMLCanvasElement>>>([]);
   const annotationRefs = useRef<Array<React.RefObject<HTMLCanvasElement>>>([]);
   const textLayerRefs = useRef<Array<React.RefObject<HTMLDivElement>>>([]);
 
-  // Load PDF file
+
   useEffect(() => {
     if (file) {
       file.arrayBuffer()
@@ -32,7 +31,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
     }
   }, [file, setPdfBytes]);
 
-  // Initialize refs for all pages
   useEffect(() => {
     if (numPages > 0 && canvasRefs.current.length === 0) {
       canvasRefs.current = Array.from({ length: numPages }, () => React.createRef<HTMLCanvasElement>() as React.RefObject<HTMLCanvasElement>);
@@ -41,7 +39,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
     }
   }, [numPages]);
 
-  // Render PDF pages
   useEffect(() => {
     if (!pdfDoc) return;
 
@@ -61,7 +58,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
     render();
   }, [pdfDoc, numPages]);
 
-  // Export PDF with annotations
   const handleExport = async () => {
     if (!pdfBytes) return;
     const annotatedPdf = await exportPdfWithAnnotations(pdfBytes, {});
@@ -77,11 +73,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
     <div className="relative w-full">
       {Array.from({ length: numPages }).map((_, index) => (
         <div key={index} className="relative mb-4 w-full">
-          {/* PDF Canvas */}
+
           <div ref={textLayerRefs.current[index]} className="absolute top-0 left-0 w-full h-full"></div>
           <canvas ref={canvasRefs.current[index]} className="w-full border" />
 
-          {/* Annotation Layer (positioned above the PDF) */}
           <AnnotationLayer
             canvasRef={annotationRefs.current[index]}
             textLayerRef={textLayerRefs.current[index]}
@@ -96,7 +91,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
         </div>
       ))}
 
-      {/* Signature & Export */}
       <div className="fixed bottom-5 right-5 flex gap-4">
         <SignaturePad onSave={setSignature} selectedColor={selectedColor} />
         <Button onClick={handleExport}>Export PDF</Button>
