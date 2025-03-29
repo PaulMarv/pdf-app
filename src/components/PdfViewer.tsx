@@ -59,7 +59,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ file, selectedTool, selectedColor
   }, [pdfDoc, numPages]);
 
   const handleExport = async () => {
-    if (!pdfBytes) return;
+    if (!pdfBytes || typeof document === "undefined") return;
     const annotatedPdf = await exportPdfWithAnnotations(pdfBytes, {});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(annotatedPdf);

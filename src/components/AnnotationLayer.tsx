@@ -24,21 +24,19 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
   pageNumber,
   pdfBytes,
   onUpdatePdf,
-  onCommentAdded
+  onCommentAdded,
 }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const startX = useRef<number>(0);
   const startY = useRef<number>(0);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  console.log(selectedTool);
-
   useEffect(() => {
-    if (!canvasRef?.current) return;
+    if (typeof document === "undefined" || !canvasRef?.current) return;
 
     const canvas = canvasRef.current;
-    canvas.width = canvas.parentElement!.clientWidth;
-    canvas.height = canvas.parentElement!.clientHeight;
+    canvas.width = canvas.parentElement?.clientWidth ?? 0;
+    canvas.height = canvas.parentElement?.clientHeight ?? 0;
 
     const ctx = canvas.getContext("2d");
     if (ctx) {
@@ -58,7 +56,7 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
 
     return {
       x: (event.clientX - rect.left) * scaleX,
-      y: (event.clientY - rect.top) * scaleY
+      y: (event.clientY - rect.top) * scaleY,
     };
   };
 
@@ -80,7 +78,6 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
     if (!isDrawing || !canvasRef.current || !ctxRef.current) return;
 
     const { x, y } = scaleCoordinates(event);
-
     if (selectedTool === "pen" || selectedTool === "highlight") {
       ctxRef.current.lineTo(x, y);
       ctxRef.current.stroke();
@@ -91,42 +88,44 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
     if (!canvasRef.current || !pdfBytes) return;
 
     if (selectedTool === "highlight" && textLayerRef?.current) {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
+      if (typeof window !== "undefined") {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
 
-        if (rect.width > 0 && rect.height > 0) {
-          console.log("Text selection detected", rect);
+          if (rect.width > 0 && rect.height > 0) {
+            console.log("Text selection detected", rect);
 
+            const highlight = document.createElement("span");
+            highlight.style.backgroundColor = selectedColor || "yellow";
+            highlight.style.position = "absolute";
+            highlight.style.left = `${rect.left}px`;
+            highlight.style.top = `${rect.top}px`;
+            highlight.style.width = `${rect.width}px`;
+            highlight.style.height = `${rect.height}px`;
+            highlight.style.opacity = "0.5";
+            highlight.style.zIndex = "2";
 
-          const highlight = document.createElement("span");
-          highlight.style.backgroundColor = selectedColor || "yellow";
-          highlight.style.position = "absolute";
-          highlight.style.left = `${rect.left}px`;
-          highlight.style.top = `${rect.top}px`;
-          highlight.style.width = `${rect.width}px`;
-          highlight.style.height = `${rect.height}px`;
-          highlight.style.opacity = "0.5";
-          highlight.style.zIndex = "2";
-          textLayerRef.current.appendChild(highlight);
+            textLayerRef.current.appendChild(highlight);
 
-          const updatedPdfBytes = await annotatePdf({
-            pdfBytes,
-            tool: "highlight",
-            pageNumber,
-            x: rect.left,
-            y: rect.top,
-            width: rect.width,
-            height: rect.height,
-            color: selectedColor,
-            signature,
-            onCommentAdded,
-          });
+            const updatedPdfBytes = await annotatePdf({
+              pdfBytes,
+              tool: "highlight",
+              pageNumber,
+              x: rect.left,
+              y: rect.top,
+              width: rect.width,
+              height: rect.height,
+              color: selectedColor,
+              signature,
+              onCommentAdded,
+            });
 
-          if (updatedPdfBytes) onUpdatePdf(updatedPdfBytes);
-          selection.removeAllRanges(); 
-          return;
+            if (updatedPdfBytes) onUpdatePdf(updatedPdfBytes);
+            selection.removeAllRanges();
+            return;
+          }
         }
       }
     }
@@ -155,7 +154,9 @@ const AnnotationLayer: React.FC<AnnotationLayerProps> = ({
 
   return (
     <div className="relative">
-      <div ref={textLayerRef} className="absolute top-0 left-0 w-full h-full pointer-events-none z-10 mix-blend-normal!"
+      <div
+        ref={textLayerRef}
+        className="absolute top-0 left-0 w-full h-full pointer-events-none z-10 mix-blend-normal!"
       ></div>
       <canvas
         ref={canvasRef}
